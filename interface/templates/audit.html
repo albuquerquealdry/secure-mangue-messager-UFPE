@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>🦀 Log de Auditoria (O Olho do Caranguejo)</h2>
+    
+    <h3>Verificação de Integridade da Assinatura</h3>
+    {% if is_valid %}
+        <pre style="background: #1b5e20; color: #c8e6c9; border: 1px solid #c8e6c9; text-transform: uppercase;"><strong> LOG AUTÊNTICO (O Mangue está limpo)</strong></pre>
+    {% else %}
+        <pre style="background: #b71c1c; color: #ffcdd2; border: 1px solid #ffcdd2; text-transform: uppercase;"><strong> FALHA DE SEGURANÇA: LOG ADULTERADO! (Caos na Lama!)</strong></pre>
+    {% endif %}
+    <details>
+        <summary style="cursor: pointer; color: #f7dc00;">Mostrar/Ocultar detalhes da verificação...</summary>
+        <pre>{{ verification_output }}</pre>
+    </details>
+
+    <h3>Eventos (Mais novos primeiro)</h3>
+    <pre>{{ log_content }}</pre>
+{% endblock %}

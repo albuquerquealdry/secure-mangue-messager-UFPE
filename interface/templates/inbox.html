@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>🦀 Caixa de Entrada de: {{ username | capitalize }}</h2>
+    <ul class="msg-list">
+        {% if messages %}
+            {% for msg in messages %}
+            <li class="{% if msg['read_status'] == 1 %}status-read{% else %}status-unread{% endif %}">
+                <span>
+                    <strong>De:</strong> {{ msg['sender'] | capitalize }}
+                    <em>({{ msg['timestamp'] | string | truncate(19) }})</em>
+                </span>
+                <a href="{{ url_for('read_message', message_id=msg['id']) }}">Ler Mensagem</a>
+            </li>
+            {% endfor %}
+        {% else %}
+            <li>Nenhuma mensagem no mangue.</li>
+        {% endif %}
+    </ul>
+{% endblock %}

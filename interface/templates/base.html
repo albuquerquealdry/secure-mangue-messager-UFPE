@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦀 Secure Mangue Messenger</title>
+    <style>
+        /* (Todo o seu CSS Mangue Beat permanece aqui, sem mudanças) */
+        body { font-family: 'Courier New', Courier, monospace; margin: 0; background: #3d3a3a; color: #f0f0f0; }
+        .container { max-width: 800px; margin: 20px auto; padding: 20px; background: #2c2c2c; border: 2px solid #f7dc00; box-shadow: 0 0 15px rgba(247, 220, 0, 0.2); }
+        nav { background: #000; padding: 10px 20px; color: white; margin-bottom: 20px; border-bottom: 3px solid #f7dc00; display: flex; justify-content: space-between; align-items: center; }
+        nav .links a { color: #f0f0f0; text-decoration: none; padding: 10px; font-weight: bold; text-transform: uppercase; }
+        nav .links a:hover, nav .links a.active { background: #f7dc00; color: #222; }
+        nav .login-form { display: flex; }
+        nav .login-form input, nav .login-form select, nav .login-form button {
+            font-family: 'Courier New', Courier, monospace;
+            background: #333; color: #f0f0f0; border: 1px solid #f7dc00;
+            padding: 5px; margin-left: 5px;
+        }
+        nav .login-form button { background: #f7dc00; color: #222; font-weight: bold; cursor: pointer; }
+        nav .user-status { color: #f7dc00; font-weight: bold; }
+        nav .user-status a { color: #f0f0f0; text-decoration: underline; padding-left: 10px; }
+        
+        h1, h2, h3 { color: #f7dc00; text-transform: uppercase; border-bottom: 1px solid #555; padding-bottom: 5px; }
+        .flash { padding: 15px; margin-bottom: 20px; font-weight: bold; }
+        .flash.success { background: #1b5e20; color: #c8e6c9; border: 1px solid #c8e6c9; }
+        .flash.error { background: #b71c1c; color: #ffcdd2; border: 1px solid #ffcdd2; }
+        pre { background: #1e1e1e; padding: 15px; border: 1px dashed #f7dc00; color: #f0f0f0; white-space: pre-wrap; word-wrap: break-word; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; color: #f7dc00; }
+        .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #555; box-sizing: border-box; background: #333; color: #f0f0f0; font-family: 'Courier New', Courier, monospace; }
+        .form-group button { background: #f7dc00; color: #222; font-weight: bold; cursor: pointer; width: 100%; padding: 10px; border: none; text-transform: uppercase; font-size: 1.1em; }
+        .msg-list { list-style: none; padding: 0; }
+        .msg-list li { padding: 15px; border: 1px solid #444; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; background: #333; }
+        .msg-list .status-read { color: #888; }
+        .msg-list .status-unread { color: #f0f0f0; font-weight: bold; }
+        .msg-list a { text-decoration: none; color: #f7dc00; font-weight: bold; padding: 5px 10px; border: 1px solid #f7dc00; }
+        .msg-list a:hover { background: #f7dc00; color: #222; }
+        .terminal-wrapper { margin-top: 30px; border: 2px solid #f7dc00; background: #1e1e1e; }
+        .terminal-header { background: #f7dc00; color: #1e1e1e; padding: 5px 10px; font-weight: bold; text-transform: uppercase; }
+        pre#live-log-terminal { height: 200px; overflow-y: scroll; padding: 10px; margin: 0; font-size: 0.9em; color: #00ff00; background: #1e1e1e; border: none; white-space: pre-wrap; word-wrap: break-word; }
+        
+        /* Estilos para a página Sobre */
+        .sobre-content p { line-height: 1.6; color: #f0f0f0; }
+        .sobre-content strong { color: #f7dc00; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="links">
+            <a href="{{ url_for('sobre') }}" {% if 'sobre' in request.path %}class="active"{% endif %}>
+                Sobre
+            </a>
+
+            {% if g.user %}
+                {% if g.user != 'audit' %}
+                <a href="{{ url_for('index') }}" {% if request.path == '/' %}class="active"{% endif %}>🦀 Enviar</a>
+                <a href="{{ url_for('inbox') }}" {% if 'inbox' in request.path %}class="active"{% endif %}>
+                    Caixa ({{ g.user | capitalize }})
+                </a>
+                {% endif %}
+
+                {% if g.user == 'audit' %}
+                <a href="{{ url_for('audit_log') }}" {% if 'audit' in request.path %}class="active"{% endif %}>
+                    Auditoria
+                </a>
+                {% endif %}
+            {% endif %}
+        </div>
+        
+        <div class="user-section">
+            {% if g.user %}
+                <span class="user-status">
+                    Logado como: {{ g.user | capitalize }}
+                    <a href="{{ url_for('logout') }}">(Logout)</a>
+                </span>
+            {% else %}
+                <form action="{{ url_for('login') }}" method="POST" class="login-form">
+                    <select name="username" required>
+                        <option value="">-- Usuário --</option>
+                        {% for user in users %}
+                        <option value="{{ user }}">{{ user | capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="password" name="password" placeholder="Senha da Chave Privada" required>
+                    <button type="submit">Login</button>
+                </form>
+            {% endif %}
+        </div>
+    </nav>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

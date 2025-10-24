@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>🦀 Sobre o Secure Mangue Messenger</h1>
+    
+    <div class="sobre-content">
+        <p>O Secure Mangue Messenger é um projeto de prova de conceito que implementa um sistema de mensagens E2EE (End-to-End Encrypted) com garantias robustas de segurança, inspirado na filosofia "Da Lama ao Caos" de conectar raízes tradicionais (criptografia clássica) com a vanguarda tecnológica (algoritmos modernos).</p>
+        
+        <p>Nosso objetivo é garantir os 4 pilares da segurança da informação em cada troca de mensagem:</p>
+        <ul>
+            <li><strong>Confidencialidade:</strong> Ninguém no meio do caminho (nem mesmo o servidor) pode ler o conteúdo da sua mensagem.</li>
+            <li><strong>Autenticidade:</strong> Você tem certeza de quem enviou a mensagem.</li>
+            <li><strong>Integridade:</strong> Você tem certeza de que a mensagem não foi alterada no caminho.</li>
+            <li><strong>Não Repúdio:</strong> O remetente não pode negar que enviou a mensagem.</li>
+        </ul>
+
+        <hr style="border-color: #555;">
+
+        <h2>A Jornada Técnica: O Envio de uma Mensagem</h2>
+        <p>Quando "Chico" envia uma mensagem para "Peixe", não é uma simples string. É um pacote criptográfico complexo. Veja o que acontece nos bastidores:</p>
+
+        <h3>1. Criptografia Híbrida (Confidencialidade)</h3>
+        <p>Não podemos cifrar a mensagem inteira com RSA, pois é muito lento. Usamos uma abordagem híbrida:</p>
+        <ol>
+            <li><strong>Cifragem Simétrica (AES-GCM):</strong> O sistema gera uma chave simétrica de uso único (uma chave AES-256). A mensagem de Chico é cifrada com esta chave. O modo <strong>GCM (Galois/Counter Mode)</strong> é usado por ser um modo AEAD, que já nos dá integridade do ciphertext (a "Tag de Autenticação").</li>
+            <li><strong>Cifragem Assimétrica (RSA-OAEP):</strong> Agora, como enviar essa chave AES para "Peixe" de forma segura? O sistema pega a <strong>Chave Pública</strong> de "Peixe" (que está no nosso "Armazém de Confiança") e a usa para cifrar ("embrulhar" ou "wrap") a chave AES.</li>
+        </ol>
+        <p>O resultado é um pacote com `(ciphertext, nonce)` (do AES) e uma `wrapped_aes_key` (do RSA).</p>
+
+        <h3>2. Assinatura Digital (Autenticidade e Integridade)</h3>
+        <p>Como "Peixe" sabe que foi "Chico" quem enviou, e que a mensagem não foi adulterada?</p>
+        <ol>
+            <li><strong>Hashing (BLAKE2b):</strong> Primeiro, o sistema calcula um hash criptográfico (uma "impressão digital") da mensagem original de "Chico" usando <strong>BLAKE2b</strong>, um algoritmo extremamente rápido e mais seguro que o SHA-2.</li>
+            <li><strong>Manifesto:</strong> O sistema cria um "manifesto" único: `timestamp + sender + recipient + hash_blake2b`.</li>
+            <li><strong>Assinatura (RSA-PSS):</strong> O sistema então usa a <strong>Chave Privada</strong> de "Chico" (que ele provou ter ao fazer login) para assinar digitalmente esse manifesto. Usamos o padding <strong>PSS</strong>, que é o padrão moderno e mais seguro para assinaturas RSA.</li>
+        </ol>
+
+        <h3>3. Verificação (O Recebimento)</h3>
+        <p>Quando "Peixe" lê a mensagem, ele faz o processo inverso em 7 camadas de segurança:</p>
+        <ol>
+            <li><strong>Busca Segura:</strong> O sistema só busca a mensagem se ela for destinada a "Peixe".</li>
+            <li><strong>Anti-Replay:</strong> O sistema verifica se essa mensagem já foi lida antes (via cache) e se o timestamp é recente.</li>
+            <li><strong>Verificação de Chave:</strong> O sistema carrega a <strong>Chave Pública Confiável</strong> de "Chico" (verificando seu hash no `trust_store.json`) para se proteger contra MITM.</li>
+            <li><strong>Verificação de Assinatura:</strong> A assinatura é verificada com a Chave Pública de "Chico". Se falhar, a mensagem é <strong>rejeitada</strong>. (Autenticidade OK).</li>
+            <li><strong>Desembrulhar Chave:</strong> "Peixe" usa sua própria <strong>Chave Privada</strong> (da sua senha de login) para decifrar a `wrapped_aes_key` e obter a chave AES. (Confidencialidade OK).</li>
+            <li><strong>Decifrar (AES-GCM):</strong> A chave AES recuperada é usada para decifrar a mensagem. A "Tag de Autenticação" do GCM é verificada. Se falhar, o ciphertext foi adulterado, e a mensagem é <strong>rejeitada</strong>.</li>
+            <li><strong>Verificação de Hash:</strong> O sistema calcula o hash BLAKE2b da mensagem decifrada e compara com o hash que veio no manifesto assinado. Se não baterem, a mensagem é <strong>rejeitada</strong>. (Integridade OK).</li>
+        </ol>
+        <p>Somente se a mensagem passar por <strong>TODAS</strong> as 7 verificações, ela é exibida para "Peixe".</p>
+
+        <h3>4. Auditoria Assinada (Segurança do Sistema)</h3>
+        <p>Cada uma dessas ações (login, falha de login, envio, leitura, falha de verificação) é registrada em um `audit.log`. Para provar que o próprio log não foi adulterado, o sistema (usando a chave privada do usuário `audit`) assina digitalmente o arquivo de log a cada novo evento, criando um `audit.log.sig`.</p>
+    </div>
+{% endblock %}

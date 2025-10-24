@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>🦀 Lendo Mensagem de: {{ details.sender | capitalize }}</h2>
+    
+    <div class="form-group">
+        <label>Timestamp:</label>
+        <pre style="border: none; background: #333; padding: 10px;">{{ details.timestamp }}</pre>
+    </div>
+
+    <div class="form-group">
+        <label>Mensagem Decifrada:</label>
+        <pre style="border-style: solid; background: #222; padding: 20px; font-size: 1.1em; color: #fff;">{{ message }}</pre>
+    </div>
+
+    <a href="{{ url_for('inbox', username=username) }}" style="color: #f7dc00;">&larr; Voltar para a Caixa de Entrada</a>
+{% endblock %}

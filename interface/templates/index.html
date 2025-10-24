@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+    
+    {% if g.user %}
+
+        {% if g.user == 'audit' %}
+        <h1>🦀 Painel de Auditoria</h1>
+        <p>Bem-vindo, <strong>{{ g.user }}</strong>. Você está logado no modo de auditoria.</p>
+        <p>Use o link "Auditoria" na barra de navegação para ver os logs completos e verificados.</p>
+
+        <div class="terminal-wrapper">
+            <div class="terminal-header">
+                :: Live Audit Log :: (Últimos 15 eventos)
+            </div>
+            <pre id="live-log-terminal">Conectando ao log de auditoria...</pre>
+        </div>
+
+        <script>
+            async function fetchLogs() {
+                try {
+                    const response = await fetch('/log/latest');
+                    if (!response.ok) {
+                        // Se for 403 (Proibido), não tentamos mais
+                        if (response.status === 403) {
+                            throw new Error('Acesso ao log negado.');
+                        }
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const logData = await response.text();
+                    const terminal = document.getElementById('live-log-terminal');
+                    
+                    if (terminal.innerText !== logData) {
+                        terminal.innerText = logData;
+                        terminal.scrollTop = terminal.scrollHeight;
+                    }
+                } catch (error) {
+                    console.error('Falha ao buscar logs:', error);
+                    const terminal = document.getElementById('live-log-terminal');
+                    if (terminal) {
+                        terminal.innerText = `Erro ao conectar ao log: ${error.message}`;
+                    }
+                }
+            }
+            fetchLogs();
+            setInterval(fetchLogs, 3000);
+        </script>
+        
+        {% else %}
+        <h1>🦀 Enviar Mensagem Segura</h1>
+        <form method="POST" action="{{ url_for('index') }}">
+            <div class="form-group">
+                <label>Remetente:</label>
+                <pre style="border:none; padding: 10px; background: #333;">{{ g.user | capitalize }}</pre>
+            </div>
+            <div class="form-group">
+                <label for="recipient">Destinatário</label>
+                <select name="recipient" id="recipient" required>
+                    <option value="">-- Selecione um destinatário --</option>
+                    {% for user in recipients %}
+                    <option value="{{ user }}">{{ user | capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="message">Mensagem (Cifrada na Lama)</label>
+                <textarea name="message" id="message" rows="5" placeholder="Escreva sua mensagem secreta aqui..."></textarea>
+            </div>
+            <div class="form-group">
+                <button type="submit">Enviar (Da Lama ao Caos)</button>
+            </div>
+        </form>
+        {% endif %}
+
+    {% else %}
+        <h2>Bem-vindo ao Secure Mangue Messenger!</h2>
+        <div class="sobre-content">
+            <p>Um sistema de mensagens que mistura a vanguarda da criptografia com a lama do Mangue Beat.</p>
+            <p>Faça o login na barra superior para enviar ou ler mensagens. Você deve usar a <strong>senha da sua chave privada</strong> (criada ao gerar as chaves) para se autenticar.</p>
+            
+            <h3>Tecnologia por Trás do Caos</h3>
+            <p>Este sistema não confia em ninguém. Cada mensagem que você envia é protegida usando um arsenal de técnicas criptográficas:</p>
+            <ul>
+                <li><strong>Criptografia Híbrida:</strong> Usamos <strong>AES-GCM</strong> (rápido e seguro) para cifrar sua mensagem e <strong>RSA-4096</strong> (robusto) para proteger a chave de cifragem. O melhor dos dois mundos.</li>
+                <li><strong>Assinaturas Digitais (RSA-PSS):</strong> Garantimos que "Chico" é realmente "Chico". Cada mensagem é assinada com a chave privada do remetente, provando <strong>Autenticidade</strong> e <strong>Não Repúdio</strong>.</li>
+                <li><strong>Hashing (BLAKE2b):</strong> Garantimos a <strong>Integridade</strong>. Um hash da sua mensagem é assinado para provar que ela não foi alterada, nem um único bit.</li>
+            </ul>
+            <p>Quer entender a fundo como sua mensagem viaja da lama ao caos e volta?
+                <br>
+                <a href="{{ url_for('sobre') }}" style="color: #f7dc00; font-weight: bold;">Veja a página "Sobre" para todos os detalhes técnicos.</a>
+            </p>
+        </div>
+    {% endif %}
+{% endblock %}
