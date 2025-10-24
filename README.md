@@ -91,7 +91,7 @@ Clone ou baixe o repositório para sua máquina local.
 
 ```bash
 git clone https://github.com/albuquerquealdry/secure-mangue-messager-UFPE.git
-cd secure_mangue_messenger-UFPE
+cd secure-mangue-messager-UFPE
 ````
 
 ### Passo 2: Ambiente Virtual e Dependências
