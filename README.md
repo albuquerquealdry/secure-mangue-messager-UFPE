@@ -109,7 +109,7 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-Crie um arquivo `requirements.txt` na raiz do projeto (veja o próximo bloco de código) e instale as dependências:
+Instalar depedências do projeto:
 
 ```bash
 pip install -r requirements.txt
@@ -199,4 +199,3 @@ Agora você pode testar o fluxo completo:
 9.  **Verificar Auditoria (Audit):**
       * Faça login como `audit`, usando a senha dele (ex: `audit_secret_password`).
       * Clique no link **"Auditoria"**.
-
